@@ -1,7 +1,0 @@
-asect 0x00
-dc 0x01
-ldi r0, 20
-
-halt
-
-end
