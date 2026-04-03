@@ -176,7 +176,10 @@
     <wire from="(260,430)" to="(280,430)"/>
     <wire from="(850,50)" to="(850,470)"/>
     <wire from="(80,390)" to="(100,390)"/>
+<<<<<<< HEAD
     <wire from="(480,360)" to="(490,360)"/>
+=======
+>>>>>>> d7bfd6e (добавил интерконнект)
     <wire from="(320,420)" to="(330,420)"/>
     <wire from="(220,400)" to="(230,400)"/>
     <wire from="(330,830)" to="(330,900)"/>
@@ -197,7 +200,10 @@
     <wire from="(220,350)" to="(250,350)"/>
     <wire from="(220,370)" to="(250,370)"/>
     <wire from="(220,390)" to="(250,390)"/>
+<<<<<<< HEAD
     <wire from="(570,360)" to="(600,360)"/>
+=======
+>>>>>>> d7bfd6e (добавил интерконнект)
     <wire from="(1010,420)" to="(1040,420)"/>
     <wire from="(220,340)" to="(240,340)"/>
     <wire from="(230,310)" to="(250,310)"/>
@@ -222,16 +228,25 @@
       <a name="text" val="Память"/>
       <a name="font" val="SansSerif plain 52"/>
     </comp>
+<<<<<<< HEAD
     <comp lib="0" loc="(480,360)" name="Tunnel">
       <a name="facing" val="east"/>
       <a name="width" val="16"/>
       <a name="label" val="addr"/>
       <a name="labelfont" val="SansSerif plain 9"/>
     </comp>
+=======
+>>>>>>> d7bfd6e (добавил интерконнект)
     <comp lib="0" loc="(130,290)" name="Tunnel">
       <a name="facing" val="south"/>
       <a name="width" val="16"/>
       <a name="label" val="r2"/>
+      <a name="labelfont" val="SansSerif plain 9"/>
+    </comp>
+    <comp lib="0" loc="(490,360)" name="Tunnel">
+      <a name="facing" val="east"/>
+      <a name="width" val="16"/>
+      <a name="label" val="addr"/>
       <a name="labelfont" val="SansSerif plain 9"/>
     </comp>
     <comp lib="0" loc="(130,70)" name="Probe">
@@ -366,6 +381,13 @@
       <a name="label" val="clk"/>
       <a name="labelfont" val="SansSerif plain 9"/>
     </comp>
+<<<<<<< HEAD
+=======
+    <comp lib="0" loc="(570,360)" name="Tunnel">
+      <a name="label" val="ram_sel"/>
+      <a name="labelfont" val="SansSerif plain 9"/>
+    </comp>
+>>>>>>> d7bfd6e (добавил интерконнект)
     <comp lib="0" loc="(170,290)" name="Tunnel">
       <a name="facing" val="south"/>
       <a name="width" val="16"/>
@@ -547,6 +569,10 @@
     <wire from="(290,440)" to="(350,440)"/>
     <wire from="(390,400)" to="(450,400)"/>
     <wire from="(390,290)" to="(440,290)"/>
+<<<<<<< HEAD
+=======
+    <wire from="(450,570)" to="(500,570)"/>
+>>>>>>> d7bfd6e (добавил интерконнект)
     <wire from="(300,540)" to="(350,540)"/>
     <wire from="(440,340)" to="(440,480)"/>
     <wire from="(530,500)" to="(570,500)"/>
@@ -559,6 +585,10 @@
     <wire from="(490,280)" to="(650,280)"/>
     <wire from="(280,270)" to="(300,270)"/>
     <wire from="(620,400)" to="(620,560)"/>
+<<<<<<< HEAD
+=======
+    <wire from="(430,440)" to="(450,440)"/>
+>>>>>>> d7bfd6e (добавил интерконнект)
     <wire from="(480,350)" to="(500,350)"/>
     <wire from="(620,400)" to="(650,400)"/>
     <wire from="(530,560)" to="(620,560)"/>
@@ -576,13 +606,20 @@
     <wire from="(440,480)" to="(500,480)"/>
     <wire from="(440,340)" to="(500,340)"/>
     <wire from="(440,540)" to="(500,540)"/>
+<<<<<<< HEAD
     <wire from="(570,360)" to="(570,500)"/>
+=======
+    <wire from="(400,360)" to="(460,360)"/>
+    <wire from="(570,360)" to="(570,500)"/>
+    <wire from="(450,440)" to="(450,570)"/>
+>>>>>>> d7bfd6e (добавил интерконнект)
     <wire from="(300,390)" to="(350,390)"/>
     <wire from="(490,280)" to="(490,290)"/>
     <wire from="(480,350)" to="(480,500)"/>
     <wire from="(300,390)" to="(300,540)"/>
     <wire from="(550,320)" to="(650,320)"/>
     <wire from="(390,550)" to="(500,550)"/>
+<<<<<<< HEAD
     <wire from="(480,500)" to="(480,580)"/>
     <wire from="(400,510)" to="(500,510)"/>
     <wire from="(400,570)" to="(500,570)"/>
@@ -590,6 +627,14 @@
     <wire from="(550,320)" to="(550,360)"/>
     <wire from="(390,350)" to="(480,350)"/>
     <wire from="(430,440)" to="(460,440)"/>
+=======
+    <wire from="(400,360)" to="(400,440)"/>
+    <wire from="(480,500)" to="(480,580)"/>
+    <wire from="(400,510)" to="(500,510)"/>
+    <wire from="(460,380)" to="(500,380)"/>
+    <wire from="(550,320)" to="(550,360)"/>
+    <wire from="(390,350)" to="(480,350)"/>
+>>>>>>> d7bfd6e (добавил интерконнект)
     <wire from="(470,520)" to="(500,520)"/>
     <wire from="(390,490)" to="(410,490)"/>
     <wire from="(470,290)" to="(490,290)"/>
@@ -600,6 +645,10 @@
     <wire from="(290,260)" to="(290,440)"/>
     <wire from="(440,290)" to="(450,290)"/>
     <wire from="(390,440)" to="(400,440)"/>
+<<<<<<< HEAD
+=======
+    <wire from="(450,440)" to="(460,440)"/>
+>>>>>>> d7bfd6e (добавил интерконнект)
     <wire from="(340,310)" to="(350,310)"/>
     <wire from="(340,410)" to="(350,410)"/>
     <wire from="(340,510)" to="(350,510)"/>
@@ -607,7 +656,10 @@
     <wire from="(290,440)" to="(290,490)"/>
     <wire from="(310,280)" to="(310,340)"/>
     <wire from="(570,360)" to="(650,360)"/>
+<<<<<<< HEAD
     <wire from="(400,510)" to="(400,570)"/>
+=======
+>>>>>>> d7bfd6e (добавил интерконнект)
     <wire from="(430,490)" to="(500,490)"/>
     <comp lib="0" loc="(340,460)" name="Constant">
       <a name="width" val="4"/>
