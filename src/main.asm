@@ -37,7 +37,7 @@ prog2: ext
 
 # Code
 core_init>
-    ldi r0, 0x8000
+    ldi r0, 0x8000 # Меняем указатель стека
     stsp r0
 
     ei # enable interrupts
