@@ -1,11 +1,11 @@
 ### INTERRUPT TABLE ###
 asect 0x00
-core_init: ext
+kernel_main: ext
 default_handler: ext
 key_handler: ext
 
 # Таблица векторных прерываний (IVT)
-dc core_init, 0 # Вектор запуска/сброса, начальный PS
+dc kernel_main, 0 # Вектор запуска/сброса, начальный PS
 dc default_handler, 0 # Невыровненный SP
 dc default_handler, 0 # Невыровненный PC
 dc default_handler, 0 # Недопустимая инструкция
@@ -42,56 +42,18 @@ key_handler>
     restore r2
     rti
 
-
-### CORE MODULES ###
-rsect os_modules
-
-# PRINT TEXT FROM [R0]
-os_tty_print>
-    save r1
-    save r2
-    ldi r2, 0xF008 # ter_sym
-print_loop:
-    ldb r0, r1 # load char from kb_sym
-    inc r0     # inc char pointer
-
-    stb r2, r1 # store to ter_sym
-
-    tst r1          # test char
-    bnz print_loop  # if char != 0 then loop
-
-    restore r1
-    restore r2
-    rts
     
 
 ### CORE ###
-rsect os_core
+rsect OS_CORE
 
-os_tty_print: ext
+os_main: ext
 
-# Code
-core_init>
-    ldi r0, 0x8000 # Меняем указатель стека
+kernel_main>
+# set stack pointer
+    ldi r0, 0x8000 
     stsp r0
 
-# enable the terminal
-    ldi r0, 0xF00A
-    ldi r1, 0x1
-    stw r0, r1
-
-# print greeting :D
-    ldi r0, text_os_greeting
-    jsr os_tty_print
-    ei # enable interrupts
-
-loop:
-    wait # wait for an interrupt
-    br loop # loop forever ;)
-
-    di # disable interrupts
-
-test_text: dc "This is the test text!", 0
-text_os_greeting: dc "Welcome to ZachetOS!", 0
-    
+# branch to os_main (never return)
+    br os_main
 end.
