@@ -43,26 +43,55 @@ key_handler>
     rti
 
 
+### CORE MODULES ###
+rsect os_modules
+
+# PRINT TEXT FROM [R0]
+os_tty_print>
+    save r1
+    save r2
+    ldi r2, 0xF008 # ter_sym
+print_loop:
+    ldb r0, r1 # load char from kb_sym
+    inc r0     # inc char pointer
+
+    stb r2, r1 # store to ter_sym
+
+    tst r1          # test char
+    bnz print_loop  # if char != 0 then loop
+
+    restore r1
+    restore r2
+    rts
+    
+
 ### CORE ###
 rsect os_core
 
-prog1: ext
-prog2: ext
+os_tty_print: ext
 
 # Code
 core_init>
     ldi r0, 0x8000 # Меняем указатель стека
     stsp r0
 
-    ldi r0, 0xF00A # Регистр терминала
-    ldi r1, 0x1 # Включение вывода терминала
+# enable the terminal
+    ldi r0, 0xF00A
+    ldi r1, 0x1
     stw r0, r1
 
+# print greeting :D
+    ldi r0, text_os_greeting
+    jsr os_tty_print
     ei # enable interrupts
+
 loop:
     wait # wait for an interrupt
-    #int 5
     br loop # loop forever ;)
+
     di # disable interrupts
+
+test_text: dc "This is the test text!", 0
+text_os_greeting: dc "Welcome to ZachetOS!", 0
     
 end.
