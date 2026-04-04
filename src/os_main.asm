@@ -3,6 +3,7 @@ rsect os_main
 kernel_driver_tty_print: ext
 kernel_driver_tty_enable: ext
 os_string_greeting: ext
+os_string_prompt_start: ext
 
 # os_main function
 os_main>
@@ -10,6 +11,9 @@ os_main>
 
 # print greeting :D
     ldi r0, os_string_greeting
+    jsr kernel_driver_tty_print
+
+    ldi r0, os_string_prompt_start
     jsr kernel_driver_tty_print
 
 # main cycle
