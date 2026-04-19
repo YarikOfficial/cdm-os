@@ -1,4 +1,4 @@
-rsect os_main
+rsect OS_MAIN
 
 kernel_driver_tty_print: ext
 kernel_driver_tty_enable: ext

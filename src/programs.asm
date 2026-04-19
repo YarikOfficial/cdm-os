@@ -1,4 +1,4 @@
-rsect programs
+asect 0x8000
 prog1>
     ldi r1, 10
     ldi r2, 20

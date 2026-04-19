@@ -1,4 +1,4 @@
-rsect os_lib
+rsect OS_LIB
 
 os_lib_strcmp> #r0, r1 - string pointers
     move r0, r3

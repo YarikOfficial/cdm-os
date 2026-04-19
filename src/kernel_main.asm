@@ -18,7 +18,7 @@ align 0x80 # Зарезервировать место для других IVT
 
 
 ### HANDLERS ###
-rsect exc_handlers
+rsect EXC_HANDLERS
 
 default_handler>
     halt
@@ -131,7 +131,7 @@ key_execute_command:
 
 
 ### CORE ###
-rsect OS_CORE
+rsect KERNEL_MAIN
 
 os_main: ext
 

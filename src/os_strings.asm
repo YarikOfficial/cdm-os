@@ -1,4 +1,4 @@
-rsect os_strings
+rsect OS_STRINGS
 
 ### Strings for output
 os_string_text> dc "This is a test text!\n", 0
