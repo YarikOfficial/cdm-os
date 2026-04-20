@@ -30,6 +30,10 @@ syscall_handler>
 kb_buffer: ds 0x20
 kb_tail: dc 0
 command_help: dc "help", 0
+command_ls: dc "ls", 0
+command_prog1: dc "prog1", 0
+command_prog2: dc "prog2", 0
+
 
 key_handler>
     save r0
@@ -102,14 +106,19 @@ char_check_end:
 
 os_lib_strcmp: ext
 os_string_help: ext
+os_string_ls: ext
 os_string_error_invalid_command: ext
 os_string_prompt_start: ext
 kernel_driver_tty_print: ext
+prog1: ext
+prog2: ext
 
 key_execute_command:
     save r0
     save r1
     save r2
+
+    
     ldi r0, kb_buffer
     ldi r1, command_help
     jsr os_lib_strcmp
@@ -117,13 +126,49 @@ key_execute_command:
         tst r2
     is z
         ldi r0, os_string_help
-        jsr kernel_driver_tty_print 
-    else 
-        ldi r0, os_string_error_invalid_command
-        jsr kernel_driver_tty_print 
+        jsr kernel_driver_tty_print
+        br key_execute_command_end
     fi
+
+    
+    ldi r0, kb_buffer
+    ldi r1, command_ls
+    jsr os_lib_strcmp
+    if
+        tst r2
+    is z
+        ldi r0, os_string_ls
+        jsr kernel_driver_tty_print
+        br key_execute_command_end
+    fi
+
+    ldi r0, kb_buffer
+    ldi r1, command_prog1
+    jsr os_lib_strcmp
+    if
+        tst r2
+    is z
+        jsr prog1
+        br key_execute_command_end
+    fi
+
+    ldi r0, kb_buffer
+    ldi r1, command_prog2
+    jsr os_lib_strcmp
+    if
+        tst r2
+    is z
+        jsr prog2
+        br key_execute_command_end
+    fi
+
+    ldi r0, os_string_error_invalid_command
+    jsr kernel_driver_tty_print
+
+key_execute_command_end:
     ldi r0, os_string_prompt_start
     jsr kernel_driver_tty_print
+
     restore r2
     restore r1
     restore r0
@@ -131,13 +176,15 @@ key_execute_command:
 
 
 ### CORE ###
+
+
 rsect KERNEL_MAIN
 
 os_main: ext
 
 kernel_main>
 # set stack pointer
-    ldi r0, 0x8000 
+    ldi r0, 0xEE00 
     stsp r0
 
 # branch to os_main (never return)

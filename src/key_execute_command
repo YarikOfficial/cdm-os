@@ -1,0 +1,51 @@
+key_execute_command:
+    save r0
+    save r1
+    save r2
+    save r3
+    save r4
+
+   
+    ldi r0, kb_buffer
+    ldi r1, command_help
+    jsr os_lib_strcmp
+    if
+        tst r2
+    is z
+        ldi r0, os_string_help
+        jsr kernel_driver_tty_print
+        br key_execute_command_end
+    fi
+
+    
+    ldi r0, kb_buffer
+    ldi r1, command_ls
+    jsr os_lib_strcmp
+    if
+        tst r2
+    is z
+        jsr fs_list
+        br key_execute_command_end
+    fi
+
+    
+    jsr fs_run_by_name
+    if
+        tst r2
+    is z
+        br key_execute_command_end
+    fi
+
+    ldi r0, os_string_error_invalid_command
+    jsr kernel_driver_tty_print
+
+key_execute_command_end:
+    ldi r0, os_string_prompt_start
+    jsr kernel_driver_tty_print
+
+    restore r4
+    restore r3
+    restore r2
+    restore r1
+    restore r0
+    rts
