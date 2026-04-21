@@ -124,13 +124,13 @@ key_execute_command:
         if
             tst r2 # if names are same
         is z
-            add r0, 7 # move to addr pointer
+            add r0, 18 # move to addr pointer
             ldw r0, r1 # get prog pointer
             jsrr r1 # start prog
             add r0, 2 # move to next table entry
             break
         else
-            add r0, 9 # move to next table entry
+            add r0, 20 # move to next table entry
         fi
     wend
 
