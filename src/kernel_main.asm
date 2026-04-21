@@ -105,30 +105,51 @@ os_string_help: ext
 os_string_error_invalid_command: ext
 os_string_prompt_start: ext
 kernel_driver_tty_print: ext
+fs_table: ext
 
 key_execute_command:
     save r0
     save r1
     save r2
-    ldi r0, kb_buffer
-    ldi r1, command_help
-    jsr os_lib_strcmp
-    if
-        tst r2
+
+    ldi r0, fs_table # get fs_table start ptr
+    while 
+        ldb r0, r1 # get first prog name char
+        tst r1
+    stays nz # if char != 0
+        ldi r1, kb_buffer # get prompt name
+
+        jsr os_lib_strcmp # compare prompt with table name
+
+        if
+            tst r2 # if names are same
+        is z
+            add r0, 7 # move to addr pointer
+            ldw r0, r1 # get prog pointer
+            jsrr r1 # start prog
+            add r0, 2 # move to next table entry
+            break
+        else
+            add r0, 9 # move to next table entry
+        fi
+    wend
+
+    if # if didn't find prog in table print invalid
+        ldb r0, r1
+        tst r1
     is z
-        ldi r0, os_string_help
-        jsr kernel_driver_tty_print 
-    else 
         ldi r0, os_string_error_invalid_command
         jsr kernel_driver_tty_print 
     fi
+
     ldi r0, os_string_prompt_start
     jsr kernel_driver_tty_print
+
     restore r2
     restore r1
     restore r0
-    rts
 
+    rts
 
 ### CORE ###
 rsect KERNEL_MAIN
