@@ -5,16 +5,15 @@ default_handler: ext
 syscall_handler: ext
 key_handler: ext
 
-# Таблица векторных прерываний (IVT)
-dc kernel_main, 0 # Вектор запуска/сброса, начальный PS
-dc default_handler, 0 # 1. Невыровненный SP
-dc default_handler, 0 # 2. Невыровненный PC
-dc default_handler, 0 # 3. Недопустимая инструкция
-dc default_handler, 0 # 4. Double Fault
-dc key_handler, 0 # 5. Нажатие клавиши
-dc 0, 0 # 6. Резерв
-dc syscall_handler, 0 # 7. syscall
-align 0x80 # Зарезервировать место для других IVT
+dc kernel_main, 0
+dc default_handler, 0
+dc default_handler, 0
+dc default_handler, 0
+dc default_handler, 0
+dc key_handler, 0
+dc 0, 0
+dc syscall_handler, 0
+align 0x80
 
 
 ### HANDLERS ###
@@ -27,129 +26,151 @@ syscall_handler>
     rti
 
 
-kb_buffer: ds 0x20
-kb_tail: dc 0
-command_help: dc "help", 0
+kb_buffer> ds 0x20
+kb_tail> dc 0
+kb_line_ready> dc 0
 
 key_handler>
     save r0
     save r1
     save r2
-# load kb_char
+    save r3
+
+    # r0 = input char
     ldi r0, 0xF000
-    ldb r0, r0      
-# calc kb_buffer + tail to r1
-    ldi r1, kb_buffer
-    ldi r2, kb_tail
-    ldb r2, r2
-    add r2, r1
-# Checking for special symbols
-# if char == backspace
+    ldb r0, r0
+
+    # if line is already ready, just consume kb_next and exit
+    ldi r1, kb_line_ready
+    ldb r1, r2
+    tst r2
+    bnz key_done
+
+    # if char == backspace
     if
         cmp r0, 0x08
     is eq
-    # tail--
         ldi r1, kb_tail
         ldb r1, r2
-    # don't let tail < 0
-        if
-            dec r2
-        is mi
-            br char_check_end
-        fi
+        tst r2
+        bz key_done_echoless
+
+        dec r2
         stb r1, r2
-    # send char to tty
+
+        # erase on terminal too
         ldi r1, 0xF008
-        stb r1, r0      
-        br char_check_end
+        stb r1, r0
+        br key_done
     fi
-# if char == '\n', 
-    if 
+
+    # if char == '\n'
+    if
         cmp r0, 0x0A
     is eq
-    # end buf with \0
-        ldi r2, 0
-        stb r1, r2 # kb_buffer + tail in r1
-    # reset tail
+        # kb_buffer[kb_tail] = 0
         ldi r1, kb_tail
-        stb r1, r2
-    # send char to tty
+        ldb r1, r2
+
+        ldi r1, kb_buffer
+        add r2, r1
+
+        ldi r3, 0
+        stb r1, r3
+
+        # kb_line_ready = 1
+        ldi r1, kb_line_ready
+        ldi r3, 1
+        stb r1, r3
+
+        # echo newline
         ldi r1, 0xF008
-        stb r1, r0      
-    # execute command in kb_buffer
-        jsr key_execute_command 
-        br char_check_end
+        stb r1, r0
+        br key_done
     fi
-# else
-# save char to kb_buffer + tail
+
+    # ordinary char
+    ldi r1, kb_tail
+    ldb r1, r2
+
+    # limit length: max 31 chars + 0
+    cmp r2, 31
+    bhs key_done
+
+    ldi r1, kb_buffer
+    add r2, r1
     stb r1, r0
-# update tail
-    inc r2 
+
+    inc r2
     ldi r1, kb_tail
     stb r1, r2
-# send char to tty
+
+    # echo char
     ldi r1, 0xF008
-    stb r1, r0      
-char_check_end:
-# send kb_next
-    ldi r0, 0xF002  # load kb_control
-    ldi r1, 0b1     # create mask
-    stb r0, r1      # store mask to kb_control
+    stb r1, r0
+    br key_done
+
+key_done_echoless:
+key_done:
+    # send kb_next
+    ldi r0, 0xF002
+    ldi r1, 0b1
+    stb r0, r1
+
+    restore r3
     restore r2
     restore r1
     restore r0
     rti
 
+
+### COMMAND EXECUTION ###
 os_lib_strcmp: ext
-os_string_help: ext
 os_string_error_invalid_command: ext
-os_string_prompt_start: ext
 kernel_driver_tty_print: ext
 fs_table: ext
 
-key_execute_command:
+key_execute_command>
     save r0
     save r1
     save r2
+    save r3
 
-    ldi r0, fs_table # get fs_table start ptr
-    while 
-        ldb r0, r1 # get first prog name char
-        tst r1
-    stays nz # if char != 0
-        ldi r1, kb_buffer # get prompt name
+    # r0 = pointer to command string
+    move r0, r3
 
-        jsr os_lib_strcmp # compare prompt with table name
+    ldi r0, fs_table
+cmd_loop:
+    ldb r0, r1
+    tst r1
+    bz cmd_not_found
 
-        if
-            tst r2 # if names are same
-        is z
-            add r0, 18 # move to addr pointer
-            ldw r0, r1 # get prog pointer
-            jsrr r1 # start prog
-            add r0, 2 # move to next table entry
-            break
-        else
-            add r0, 20 # move to next table entry
-        fi
-    wend
+    move r3, r1
+    jsr os_lib_strcmp
 
-    if # if didn't find prog in table print invalid
-        ldb r0, r1
-        tst r1
-    is z
-        ldi r0, os_string_error_invalid_command
-        jsr kernel_driver_tty_print 
-    fi
+    tst r2
+    bz cmd_found
 
-    ldi r0, os_string_prompt_start
+    add r0, 20
+    br cmd_loop
+
+cmd_found:
+    add r0, 18
+    ldw r0, r1
+    jsrr r1
+    br cmd_end
+
+cmd_not_found:
+    ldi r0, os_string_error_invalid_command
     jsr kernel_driver_tty_print
 
+cmd_end:
+    restore r3
     restore r2
     restore r1
     restore r0
-
     rts
+
 
 ### CORE ###
 rsect KERNEL_MAIN
@@ -157,10 +178,8 @@ rsect KERNEL_MAIN
 os_main: ext
 
 kernel_main>
-# set stack pointer
-    ldi r0, 0x8000 
+    ldi r0, 0x9000
     stsp r0
-
-# branch to os_main (never return)
     br os_main
+
 end.

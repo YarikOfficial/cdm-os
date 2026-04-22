@@ -19,13 +19,14 @@ kernel_driver_tty_print>
     save r2
     ldi r2, 0xF008 # tty_char
 print_loop:
-    ldb r0, r1 # load char from kb_char
-    inc r0     # inc char pointer
-    stb r2, r1 # store to tty_char
-    tst r1          # test char
-    bnz print_loop  # if char != 0 then loop
-    restore r1
+    ldb r0, r1
+    tst r1
+    bz print_done
+    stb r2, r1
+    inc r0
+    br print_loop
+print_done:
     restore r2
+    restore r1
     rts
-
 end
