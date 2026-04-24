@@ -3,6 +3,7 @@ asect 0x00
 kernel_main: ext
 default_handler: ext
 syscall_handler: ext
+tim_handler: ext
 key_handler: ext
 
 # Таблица векторных прерываний (IVT)
@@ -12,7 +13,7 @@ dc default_handler, 0 # 2. Невыровненный PC
 dc default_handler, 0 # 3. Недопустимая инструкция
 dc default_handler, 0 # 4. Double Fault
 dc key_handler, 0 # 5. Нажатие клавиши
-dc 0, 0 # 6. Резерв
+dc tim_handler, 0 # 6. Резерв
 dc syscall_handler, 0 # 7. syscall
 align 0x80 # Зарезервировать место для других IVT
 
@@ -26,6 +27,9 @@ default_handler>
 syscall_handler>
     rti
 
+os_string_greeting: ext
+tim_handler>
+    rti
 
 kb_buffer: ds 0x20
 kb_tail: dc 0
