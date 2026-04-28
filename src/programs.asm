@@ -14,10 +14,12 @@ fs_table>
     ds 14
     dc program_ls
 
+    # NEW: gets()
     dc "input", 0
     ds 11
     dc program_input
 
+    # NEW: calc
     dc "calc", 0
     ds 12
     dc program_calc
@@ -41,14 +43,11 @@ os_lib_gets: ext
 os_lib_atoi: ext
 os_lib_itoa_u16: ext
 
+# NEW: buffers for programs
 input_buffer: ds 0x20
 calc_buf_a: ds 0x20
 calc_buf_b: ds 0x20
 calc_result_buf: ds 0x20
-calc_a_value: dc 2
-calc_b_value: dc 2
-calc_result_value: dc 2
-
 
 prog1>
     ldi r0, os_string_prog1
@@ -65,6 +64,7 @@ program_ls>
     jsr kernel_driver_tty_print
     rts
 
+# NEW: reads a line and prints it back
 program_input>
     ldi r0, os_string_input_ask
     jsr kernel_driver_tty_print
@@ -83,7 +83,10 @@ program_input>
     jsr kernel_driver_tty_print
     rts
 
+# NEW: simple calculator: reads a and b, prints a + b
 program_calc>
+    push r4
+
     ldi r0, os_string_calc_a
     jsr kernel_driver_tty_print
 
@@ -105,7 +108,7 @@ program_calc>
     ldi r0, calc_buf_b
     jsr os_lib_atoi
 
-    add r4, r1, r1
+    add r4, r1
 
     move r1, r0
     ldi r1, calc_result_buf
@@ -120,5 +123,7 @@ program_calc>
     ldi r0, os_string_newline
     jsr kernel_driver_tty_print
 
+    pop r4
     rts
+
 end
