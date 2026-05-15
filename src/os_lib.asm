@@ -5,6 +5,12 @@ kb_buffer: ext
 kb_tail: ext
 kb_line_ready: ext
 
+# NEW: dispatcher hooks.
+# task_dispatch_once runs background work after timer interrupts.
+# sched_current_task protects input from background tasks.
+task_dispatch_once: ext
+sched_current_task: ext
+
 # os_lib_strlen
 # input:  r0 = string pointer
 # output: r1 = length before '\0'
@@ -88,8 +94,25 @@ os_lib_gets>
     move r0, r3 # r3 = destination
     move r1, r4 # r4 = max length
 
+    # NEW: background code must never steal shell keyboard input.
+    # If a background task accidentally calls gets(), return an empty string
+    # immediately instead of waiting for the terminal.
+    ldi r2, sched_current_task
+    ldb r2, r5
+    tst r5
+    bz gets_foreground
+    ldi r5, 0
+    stb r3, r5
+    br gets_return
+
+gets_foreground:
 gets_wait:
     wait
+
+    # NEW: after every interrupt wake-up, let the dispatcher run one tiny
+    # background step if the timer asked for it.
+    jsr task_dispatch_once
+
     ldi r2, kb_line_ready
     ldb r2, r5
     tst r5
@@ -133,6 +156,7 @@ gets_clear_state:
     ldi r2, kb_line_ready
     stb r2, r5
 
+gets_return:
     pop r6
     pop r5
     pop r4

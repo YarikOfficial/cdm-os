@@ -28,7 +28,33 @@ syscall_handler>
     rti
 
 os_string_greeting: ext
+
+# NEW: timer interrupt is deliberately small.
+# It only records that a scheduling tick happened. Real task code is run later
+# from os_lib_gets/task_dispatch_once, outside the interrupt handler.
 tim_handler>
+    save r0
+    save r1
+
+    # total timer ticks since boot
+    ldi r0, sched_tick_count
+    ldw r0, r1
+    inc r1
+    stw r0, r1
+
+    # one pending dispatch request for the shell/foreground loop
+    ldi r0, sched_tick_pending
+    ldi r1, 1
+    stb r0, r1
+
+    # If your timer device requires a memory-mapped reset/acknowledge,
+    # write it here. Example, replace 0xF00C with your tim_reset address:
+    #   ldi r0, 0xF00C
+    #   ldi r1, 1
+    #   stb r0, r1
+
+    restore r1
+    restore r0
     rti
 
 # OLD MAIN STATE: keyboard buffer stayed here.
@@ -37,6 +63,20 @@ kb_buffer> ds 0x20
 kb_tail> dc 0
 kb_line_ready> dc 0 # NEW: 1 means full line is ready for os_main/os_lib_gets
 command_help: dc "help", 0
+
+# NEW: minimal cooperative scheduler state.
+# state: 0 = stopped/free, 1 = runnable.
+# The current implementation runs tiny background "step" functions.
+# This keeps the existing program model intact: foreground programs are still
+# ordinary subroutines called by key_execute_command and returned with rts.
+sched_tick_count> dc 0    # word: total timer ticks
+sched_tick_pending> dc 0  # byte: timer asked dispatcher to run once
+sched_current_task> dc 0  # byte: 0=shell/foreground, 1/2=background PID
+sched_next_task> dc 0     # byte: round-robin cursor, 0 => try task 1 first
+sched_task1_state> dc 0
+sched_task2_state> dc 0
+sched_task1_ticks> dc 0   # word: how many slices task 1 received
+sched_task2_ticks> dc 0   # word: how many slices task 2 received
 
 key_handler>
     save r0
@@ -130,6 +170,8 @@ os_string_error_invalid_command: ext
 os_string_prompt_start: ext
 kernel_driver_tty_print: ext
 fs_table: ext
+prog1_background_step: ext
+prog2_background_step: ext
 
 # NEW: exported because os_main calls it.
 # input: r0 = pointer to command string
@@ -172,6 +214,173 @@ key_execute_end:
     restore r1
     restore r0
     rts
+
+
+# NEW: start/stop API used by shell commands bg1/bg2/kill1/kill2.
+# These routines do not run the task immediately; they only change its state.
+sched_start_task1>
+    save r0
+    save r1
+    ldi r0, sched_task1_ticks
+    ldi r1, 0
+    stw r0, r1
+    ldi r0, sched_task1_state
+    ldi r1, 1
+    stb r0, r1
+    restore r1
+    restore r0
+    rts
+
+sched_stop_task1>
+    save r0
+    save r1
+    ldi r0, sched_task1_state
+    ldi r1, 0
+    stb r0, r1
+    restore r1
+    restore r0
+    rts
+
+sched_start_task2>
+    save r0
+    save r1
+    ldi r0, sched_task2_ticks
+    ldi r1, 0
+    stw r0, r1
+    ldi r0, sched_task2_state
+    ldi r1, 1
+    stb r0, r1
+    restore r1
+    restore r0
+    rts
+
+sched_stop_task2>
+    save r0
+    save r1
+    ldi r0, sched_task2_state
+    ldi r1, 0
+    stb r0, r1
+    restore r1
+    restore r0
+    rts
+
+
+# NEW: task dispatcher.
+# It is cooperative: on every timer tick it runs at most one small task step.
+# Round-robin order: task 1, task 2, task 1, ...
+# Important: dispatcher sets sched_current_task before calling a task.
+# Drivers/libraries use that flag to forbid background terminal I/O.
+task_dispatch_once>
+    save r0
+    save r1
+    save r2
+
+    # no timer tick => no scheduling work
+    ldi r0, sched_tick_pending
+    ldb r0, r1
+    tst r1
+    bz sched_dispatch_end
+
+    # consume one pending tick
+    ldi r1, 0
+    stb r0, r1
+
+    # choose first candidate by round-robin cursor
+    ldi r0, sched_next_task
+    ldb r0, r1
+    tst r1
+    bz sched_try_task1_first
+
+sched_try_task2_first:
+    jsr sched_try_task2
+    tst r2
+    bnz sched_dispatch_end
+    jsr sched_try_task1
+    br sched_dispatch_end
+
+sched_try_task1_first:
+    jsr sched_try_task1
+    tst r2
+    bnz sched_dispatch_end
+    jsr sched_try_task2
+
+sched_dispatch_end:
+    restore r2
+    restore r1
+    restore r0
+    rts
+
+# Try to run task 1. Returns r2 = 1 if it ran, else r2 = 0.
+sched_try_task1:
+    ldi r2, 0
+    ldi r0, sched_task1_state
+    ldb r0, r1
+    cmp r1, 1
+    bne sched_try_task1_end
+
+    ldi r0, sched_current_task
+    ldi r1, 1
+    stb r0, r1
+
+    # Run one small unit of prog1 background work.
+    jsr prog1_background_step
+
+    # Count how many scheduler slices prog1 got.
+    ldi r0, sched_task1_ticks
+    ldw r0, r1
+    inc r1
+    stw r0, r1
+
+    ldi r0, sched_current_task
+    ldi r1, 0
+    stb r0, r1
+
+    ldi r0, sched_next_task
+    ldi r1, 1
+    stb r0, r1
+
+    ldi r2, 1
+sched_try_task1_end:
+    rts
+
+# Try to run task 2. Returns r2 = 1 if it ran, else r2 = 0.
+sched_try_task2:
+    ldi r2, 0
+    ldi r0, sched_task2_state
+    ldb r0, r1
+    cmp r1, 1
+    bne sched_try_task2_end
+
+    ldi r0, sched_current_task
+    ldi r1, 2
+    stb r0, r1
+
+    # Run one small unit of prog2 background work.
+    jsr prog2_background_step
+
+    # Count how many scheduler slices prog2 got.
+    ldi r0, sched_task2_ticks
+    ldw r0, r1
+    inc r1
+    stw r0, r1
+
+    ldi r0, sched_current_task
+    ldi r1, 0
+    stb r0, r1
+
+    ldi r0, sched_next_task
+    ldi r1, 0
+    stb r0, r1
+
+    ldi r2, 1
+sched_try_task2_end:
+    rts
+
+
+# Background task bodies are now in programs.asm:
+#   prog1_background_step>
+#   prog2_background_step>
+# The kernel dispatcher only chooses which task to run and counts time slices.
 
 ### CORE ###
 rsect KERNEL_MAIN
