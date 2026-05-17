@@ -7,8 +7,8 @@ os_string_greeting> dc "Welcome to ZachetOS!\n", 0
 os_string_help> dc "Available commands: help, ls, prog1, prog2, input, calc, prog1bg, prog2bg, kill1, kill2, ps, tasks\n", 0
 os_string_ls> dc "prog1\nprog2\ninput\ncalc\nprog1bg\nprog2bg\nkill1\nkill2\nps\ntasks\n", 0
 
-os_string_prog1> dc "Program 1 started!\n", 0
-os_string_prog2> dc "Program 2 started!\n", 0
+os_string_prog1> dc "Counter value: ", 0
+os_string_prog2> dc "Sum value: ", 0
 os_string_error_invalid_command> dc "This command is INVALID!\n", 0
 os_string_prompt_start> dc ">", 0
 

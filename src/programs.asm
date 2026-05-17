@@ -106,14 +106,42 @@ calc_result_buf: ds 0x20
 prog1_bg_counter: dc 0
 prog2_bg_counter: dc 0
 
+sum_char> ds 0x60
+count_data> dc 0, 0
+sum_data> dc 0, 0
+
 prog1>
     ldi r0, os_string_prog1
     jsr kernel_driver_tty_print
+    
+    ldi r0, count_data
+    ldw r0, r0
+    ldi r1, sum_char
+    jsr os_lib_itoa_u16
+
+    move r1, r0
+    jsr kernel_driver_tty_print
+
+    ldi r0, os_string_newline
+    jsr kernel_driver_tty_print
+
     rts
 
 prog2>
     ldi r0, os_string_prog2
     jsr kernel_driver_tty_print
+
+    ldi r0, sum_data
+    ldw r0, r0
+    ldi r1, sum_char
+    jsr os_lib_itoa_u16
+
+    move r1, r0
+    jsr kernel_driver_tty_print
+
+    ldi r0, os_string_newline
+    jsr kernel_driver_tty_print
+
     rts
 
 # NEW: background step for prog1.
@@ -126,6 +154,12 @@ prog1_background_step>
     ldw r0, r1
     inc r1
     stw r0, r1
+
+    ldi r0, count_data
+    ldw r0, r1
+    inc r1
+    stw r0, r1
+
     restore r1
     restore r0
     rts
@@ -134,13 +168,27 @@ prog1_background_step>
 prog2_background_step>
     save r0
     save r1
-    ldi r0, prog2_bg_counter
+    save r2
+    ldi r0, prog1_bg_counter
     ldw r0, r1
     inc r1
     stw r0, r1
+
+    ldi r0, count_data
+    ldw r0, r1
+
+    ldi r0, sum_data
+    ldw r0, r2
+
+    add r1, r2
+
+    stw r0, r2
+
+    restore r2
     restore r1
     restore r0
     rts
+
 
 program_ls>
     ldi r0, os_string_ls

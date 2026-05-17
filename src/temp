@@ -1,0 +1,13 @@
+sum_char> ds 0x60
+sum>
+    ldi r0, os_string_sum
+    jsr kernel_driver_tty_print
+
+    ldi r0, sum_data
+    ldi r1, sum_char
+    jsr os_lib_itoa_u16
+
+    move r1, r0
+    jsr kernel_driver_tty_print
+    rts
+
