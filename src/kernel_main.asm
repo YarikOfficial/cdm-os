@@ -170,8 +170,8 @@ os_string_error_invalid_command: ext
 os_string_prompt_start: ext
 kernel_driver_tty_print: ext
 fs_table: ext
-count_background_step: ext
-sum_background_step: ext
+prog1_background_step: ext
+prog2_background_step: ext
 
 # NEW: exported because os_main calls it.
 # input: r0 = pointer to command string
@@ -322,10 +322,10 @@ sched_try_task1:
     ldi r1, 1
     stb r0, r1
 
-    # Run one small unit of count background work.
-    jsr count_background_step
+    # Run one small unit of prog1 background work.
+    jsr prog1_background_step
 
-    # Count how many scheduler slices count got.
+    # Count how many scheduler slices prog1 got.
     ldi r0, sched_task1_ticks
     ldw r0, r1
     inc r1
@@ -355,10 +355,10 @@ sched_try_task2:
     ldi r1, 2
     stb r0, r1
 
-    # Run one small unit of sum background work.
-    jsr sum_background_step
+    # Run one small unit of prog2 background work.
+    jsr prog2_background_step
 
-    # Count how many scheduler slices sum got.
+    # Count how many scheduler slices prog2 got.
     ldi r0, sched_task2_ticks
     ldw r0, r1
     inc r1
@@ -378,8 +378,8 @@ sched_try_task2_end:
 
 
 # Background task bodies are now in programs.asm:
-#   count_background_step>
-#   sum_background_step>
+#   prog1_background_step>
+#   prog2_background_step>
 # The kernel dispatcher only chooses which task to run and counts time slices.
 
 ### CORE ###
