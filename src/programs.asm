@@ -2,13 +2,13 @@
 asect 0x8000
 
 fs_table>
-    dc "prog1", 0
+    dc "count", 0
     ds 11
-    dc prog1
+    dc count
 
-    dc "prog2", 0
+    dc "sum", 0
     ds 11
-    dc prog2
+    dc sum
 
     dc "ls", 0
     ds 14
@@ -24,17 +24,17 @@ fs_table>
     ds 12
     dc program_calc
 
-    # NEW: start prog1 as a background task.
-    # Foreground "prog1" still works as before.
-    dc "prog1bg", 0
+    # NEW: start count as a background task.
+    # Foreground "count" still works as before.
+    dc "countbg", 0
     ds 9
-    dc program_prog1bg
+    dc program_countbg
 
-    # NEW: start prog2 as a background task.
-    # Foreground "prog2" still works as before.
-    dc "prog2bg", 0
+    # NEW: start sum as a background task.
+    # Foreground "sum" still works as before.
+    dc "sumbg", 0
     ds 9
-    dc program_prog2bg
+    dc program_sumbg
 
     # NEW: stop background task 1
     dc "kill1", 0
@@ -61,8 +61,8 @@ fs_table>
 
 # PROGRAM CODE
 asect 0x8200
-os_string_prog1: ext
-os_string_prog2: ext
+os_string_count: ext
+os_string_sum: ext
 os_string_ls: ext
 os_string_input_ask: ext
 os_string_input_ans: ext
@@ -70,10 +70,10 @@ os_string_calc_a: ext
 os_string_calc_b: ext
 os_string_calc_result: ext
 os_string_newline: ext
-os_string_prog1bg_started: ext
-os_string_prog2bg_started: ext
-os_string_prog1bg_stopped: ext
-os_string_prog2bg_stopped: ext
+os_string_countbg_started: ext
+os_string_sumbg_started: ext
+os_string_countbg_stopped: ext
+os_string_sumbg_stopped: ext
 os_string_ps_header: ext
 os_string_ps_task1: ext
 os_string_ps_task2: ext
@@ -100,44 +100,73 @@ calc_buf_a: ds 0x20
 calc_buf_b: ds 0x20
 calc_result_buf: ds 0x20
 
-# NEW: private state for background versions of prog1/prog2.
-# These counters prove that prog1/prog2 really do background work.
+# NEW: private state for background versions of count/sum.
+# These counters prove that count/sum really do background work.
 # They are not printed directly by background code; ps/tasks prints scheduler ticks.
-prog1_bg_counter: dc 0
-prog2_bg_counter: dc 0
+count_bg_counter: dc 0
+sum_bg_counter: dc 0
 
-prog1>
-    ldi r0, os_string_prog1
+count>
+    ldi r0, os_string_count
     jsr kernel_driver_tty_print
     rts
 
-prog2>
-    ldi r0, os_string_prog2
+sum_char> ds 0xFF
+sum>
+    ldi r0, os_string_sum
+    jsr kernel_driver_tty_print
+
+    ldi r0, sum_data
+    ldi r1, sum_char
+    jsr os_lib_itoa_u16
+
+    move r1, r0
     jsr kernel_driver_tty_print
     rts
 
-# NEW: background step for prog1.
+# NEW: background step for count.
 # Important rule: a background step must be short and must not read keyboard
 # or print to terminal. The dispatcher calls this repeatedly by timer ticks.
-prog1_background_step>
+count_data> dc 0, 0
+count_background_step> # add 1 to count_data
     save r0
     save r1
-    ldi r0, prog1_bg_counter
+    ldi r0, count_bg_counter
     ldw r0, r1
     inc r1
     stw r0, r1
+
+    ldi r0, count_data
+    ldw r0, r1
+    inc r1
+    stw r0, r1
+
     restore r1
     restore r0
     rts
 
-# NEW: background step for prog2.
-prog2_background_step>
+# NEW: background step for sum.
+sum_data> dc 0, 0
+sum_background_step> # add count_data to sum_data
     save r0
     save r1
-    ldi r0, prog2_bg_counter
+    save r2
+    ldi r0, sum_bg_counter
     ldw r0, r1
     inc r1
     stw r0, r1
+
+    ldi r0, count_data
+    ldw r0, r1
+
+    ldi r0, sum_data
+    ldw r0, r2
+
+    add r1, r2
+
+    stw r0, r2
+
+    restore r2
     restore r1
     restore r0
     rts
@@ -210,33 +239,33 @@ program_calc>
     rts
 
 
-# NEW: shell command: start prog1 as a background task.
-# It does not call prog1> directly, because prog1> prints to terminal and exits.
-# Instead the scheduler repeatedly calls prog1_background_step>.
-program_prog1bg>
+# NEW: shell command: start count as a background task.
+# It does not call count> directly, because count> prints to terminal and exits.
+# Instead the scheduler repeatedly calls count_background_step>.
+program_countbg>
     jsr sched_start_task1
-    ldi r0, os_string_prog1bg_started
+    ldi r0, os_string_countbg_started
     jsr kernel_driver_tty_print
     rts
 
-# NEW: shell command: start prog2 as a background task.
-program_prog2bg>
+# NEW: shell command: start sum as a background task.
+program_sumbg>
     jsr sched_start_task2
-    ldi r0, os_string_prog2bg_started
+    ldi r0, os_string_sumbg_started
     jsr kernel_driver_tty_print
     rts
 
-# NEW: shell command: stop background prog1.
+# NEW: shell command: stop background count.
 program_kill1>
     jsr sched_stop_task1
-    ldi r0, os_string_prog1bg_stopped
+    ldi r0, os_string_countbg_stopped
     jsr kernel_driver_tty_print
     rts
 
-# NEW: shell command: stop background prog2.
+# NEW: shell command: stop background sum.
 program_kill2>
     jsr sched_stop_task2
-    ldi r0, os_string_prog2bg_stopped
+    ldi r0, os_string_sumbg_stopped
     jsr kernel_driver_tty_print
     rts
 
