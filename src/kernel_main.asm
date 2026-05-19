@@ -29,7 +29,7 @@ syscall_handler>
 
 os_string_greeting: ext
 
-timer interrupt is deliberately small.
+# timer interrupt is deliberately small.
 # It only records that a scheduling tick happened. Real task code is run later
 # from os_lib_gets/task_dispatch_once, outside the interrupt handler.
 tim_handler>
