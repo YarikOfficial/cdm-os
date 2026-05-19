@@ -1,7 +1,7 @@
 ### CORE MODULES ###
 rsect kernel_modules
 
-# NEW: dispatcher sets this flag while a background task is running.
+# dispatcher sets this flag while a background task is running.
 # If it is not zero, terminal output is blocked so background code cannot
 # break the shell prompt or print over user input.
 sched_current_task: ext
@@ -24,7 +24,7 @@ kernel_driver_tty_print>
     save r2
     save r3
 
-# NEW: only the foreground shell/program may write to the terminal.
+# only the foreground shell/program may write to the terminal.
 # The dispatcher sets sched_current_task to a non-zero PID before calling
 # a background task. In that case this driver returns without printing.
     ldi r3, sched_current_task

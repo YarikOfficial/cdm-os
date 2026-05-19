@@ -29,7 +29,7 @@ syscall_handler>
 
 os_string_greeting: ext
 
-# NEW: timer interrupt is deliberately small.
+timer interrupt is deliberately small.
 # It only records that a scheduling tick happened. Real task code is run later
 # from os_lib_gets/task_dispatch_once, outside the interrupt handler.
 tim_handler>
@@ -57,14 +57,14 @@ tim_handler>
     restore r0
     rti
 
-# OLD MAIN STATE: keyboard buffer stayed here.
-# NEW: labels are exported with '>' because os_lib_gets uses them.
+# keyboard buffer stayed here.
+# labels are exported with '>' because os_lib_gets uses them.
 kb_buffer> ds 0x20
 kb_tail> dc 0
-kb_line_ready> dc 0 # NEW: 1 means full line is ready for os_main/os_lib_gets
+kb_line_ready> dc 0 # 1 means full line is ready for os_main/os_lib_gets
 command_help: dc "help", 0
 
-# NEW: minimal cooperative scheduler state.
+# minimal cooperative scheduler state.
 # state: 0 = stopped/free, 1 = runnable.
 # The current implementation runs tiny background "step" functions.
 # This keeps the existing program model intact: foreground programs are still
@@ -88,7 +88,7 @@ key_handler>
     ldi r0, 0xF000
     ldb r0, r0
 
-# NEW: if previous line is not processed yet, do not overwrite buffer
+# if previous line is not processed yet, do not overwrite buffer
     ldi r1, kb_line_ready
     ldb r1, r2
     tst r2
@@ -127,7 +127,7 @@ key_handler>
         ldi r3, 0
         stb r1, r3 # kb_buffer + tail in r1
 
-    # NEW: do not execute command inside interrupt.
+    # do not execute command inside interrupt.
     # Just mark that line is ready; os_main will execute it safely.
         ldi r1, kb_line_ready
         ldi r3, 1
@@ -140,7 +140,7 @@ key_handler>
     fi
 
 # else: save ordinary char to kb_buffer + tail
-# NEW: protect buffer from overflow: max 31 chars + terminating zero
+# protect buffer from overflow: max 31 chars + terminating zero
     cmp r2, 31
     bhs char_check_end
 
@@ -173,7 +173,7 @@ fs_table: ext
 count_background_step: ext
 adder_background_step: ext
 
-# NEW: exported because os_main calls it.
+# exported because os_main calls it.
 # input: r0 = pointer to command string
 key_execute_command>
     save r0
@@ -216,7 +216,7 @@ key_execute_end:
     rts
 
 
-# NEW: start/stop API used by shell commands bg1/bg2/kill1/kill2.
+# start/stop API used by shell commands bg1/bg2/kill1/kill2.
 # These routines do not run the task immediately; they only change its state.
 sched_start_task1>
     save r0
@@ -265,7 +265,7 @@ sched_stop_task2>
     rts
 
 
-# NEW: task dispatcher.
+# task dispatcher.
 # It is cooperative: on every timer tick it runs at most one small task step.
 # Round-robin order: task 1, task 2, task 1, ...
 # Important: dispatcher sets sched_current_task before calling a task.

@@ -5,7 +5,7 @@ kernel_driver_tty_enable: ext
 os_string_greeting: ext
 os_string_prompt_start: ext
 
-# NEW: safe command input/execution outside interrupt handler
+# safe command input/execution outside interrupt handler
 os_lib_gets: ext
 key_execute_command: ext
 

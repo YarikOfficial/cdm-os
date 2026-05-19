@@ -1,11 +1,11 @@
 rsect OS_LIB
 
-# NEW: shared keyboard state from kernel_main.asm
+# shared keyboard state from kernel_main.asm
 kb_buffer: ext
 kb_tail: ext
 kb_line_ready: ext
 
-# NEW: dispatcher hooks.
+# dispatcher hooks.
 # task_dispatch_once runs background work after timer interrupts.
 # sched_current_task protects input from background tasks.
 task_dispatch_once: ext
@@ -78,7 +78,7 @@ strcmp_equal:
     rts
 
 
-# NEW: gets-like function for programs input/calc.
+# gets-like function for programs input/calc.
 # input:
 #   r0 = destination buffer
 #   r1 = max length including '\0'
@@ -94,7 +94,7 @@ os_lib_gets>
     move r0, r3 # r3 = destination
     move r1, r4 # r4 = max length
 
-    # NEW: background code must never steal shell keyboard input.
+    # background code must never steal shell keyboard input.
     # If a background task accidentally calls gets(), return an empty string
     # immediately instead of waiting for the terminal.
     ldi r2, sched_current_task
@@ -109,7 +109,7 @@ gets_foreground:
 gets_wait:
     wait
 
-    # NEW: after every interrupt wake-up, let the dispatcher run one tiny
+    # after every interrupt wake-up, let the dispatcher run one tiny
     # background step if the timer asked for it.
     jsr task_dispatch_once
 
@@ -165,7 +165,7 @@ gets_return:
     rts
 
 
-# NEW: ASCII decimal string -> number.
+# ASCII decimal string -> number.
 # input:  r0 = pointer to zero-terminated decimal string
 # output: r1 = parsed number
 # Works left-to-right: result = result * 10 + digit
@@ -209,7 +209,7 @@ atoi_done:
     rts
 
 
-# NEW: unsigned number -> decimal string.
+# unsigned number -> decimal string.
 # input:
 #   r0 = value
 #   r1 = destination buffer

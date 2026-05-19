@@ -14,44 +14,44 @@ fs_table>
     ds 14
     dc program_ls
 
-    # NEW: gets()
+    # gets()
     dc "input", 0
     ds 11
     dc program_input
 
-    # NEW: calc
+    # calc
     dc "calc", 0
     ds 12
     dc program_calc
 
-    # NEW: start count as a background task.
+    # start count as a background task.
     # Foreground "count" still works as before.
     dc "countbg", 0
     ds 9
     dc program_countbg
 
-    # NEW: start adder as a background task.
+    # start adder as a background task.
     # Foreground "adder" still works as before.
     dc "adderbg", 0
     ds 9
     dc program_adderbg
 
-    # NEW: stop background task 1
+    # stop background task 1
     dc "kill1", 0
     ds 11
     dc program_kill1
 
-    # NEW: stop background task 2
+    # stop background task 2
     dc "kill2", 0
     ds 11
     dc program_kill2
 
-    # NEW: task manager / process list
+    # task manager / process list
     dc "ps", 0
     ds 14
     dc program_ps
 
-    # NEW: alias for ps
+    # alias for ps
     dc "tasks", 0
     ds 11
     dc program_ps
@@ -84,7 +84,7 @@ os_lib_gets: ext
 os_lib_atoi: ext
 os_lib_itoa_u16: ext
 
-# NEW: scheduler API/state for background tasks and task manager
+# scheduler API/state for background tasks and task manager
 sched_start_task1: ext
 sched_start_task2: ext
 sched_stop_task1: ext
@@ -94,13 +94,13 @@ sched_task2_state: ext
 sched_task1_ticks: ext
 sched_task2_ticks: ext
 
-# NEW: buffers for programs
+# buffers for programs
 input_buffer: ds 0x20
 calc_buf_a: ds 0x20
 calc_buf_b: ds 0x20
 calc_result_buf: ds 0x20
 
-# NEW: private state for background versions of count/adder.
+# private state for background versions of count/adder.
 # These counters prove that count/adder really do background work.
 # They are not printed directly by background code; ps/tasks prints scheduler ticks.
 count_bg_counter: dc 0
@@ -144,7 +144,7 @@ adder>
 
     rts
 
-# NEW: background step for count.
+# background step for count.
 # Important rule: a background step must be short and must not read keyboard
 # or print to terminal. The dispatcher calls this repeatedly by timer ticks.
 count_background_step>
@@ -164,7 +164,7 @@ count_background_step>
     restore r0
     rts
 
-# NEW: background step for adder.
+# background step for adder.
 adder_background_step>
     save r0
     save r1
@@ -195,7 +195,7 @@ program_ls>
     jsr kernel_driver_tty_print
     rts
 
-# NEW: reads a line and prints it back
+# reads a line and prints it back
 program_input>
     ldi r0, os_string_input_ask
     jsr kernel_driver_tty_print
@@ -214,7 +214,7 @@ program_input>
     jsr kernel_driver_tty_print
     rts
 
-# NEW: simple calculator: reads a and b, prints a + b
+# simple calculator: reads a and b, prints a + b
 program_calc>
     push r4
 
@@ -258,7 +258,7 @@ program_calc>
     rts
 
 
-# NEW: shell command: start count as a background task.
+# shell command: start count as a background task.
 # It does not call count> directly, because count> prints to terminal and exits.
 # Instead the scheduler repeatedly calls count_background_step>.
 program_countbg>
@@ -267,28 +267,28 @@ program_countbg>
     jsr kernel_driver_tty_print
     rts
 
-# NEW: shell command: start adder as a background task.
+# shell command: start adder as a background task.
 program_adderbg>
     jsr sched_start_task2
     ldi r0, os_string_adderbg_started
     jsr kernel_driver_tty_print
     rts
 
-# NEW: shell command: stop background count.
+# shell command: stop background count.
 program_kill1>
     jsr sched_stop_task1
     ldi r0, os_string_countbg_stopped
     jsr kernel_driver_tty_print
     rts
 
-# NEW: shell command: stop background adder.
+# shell command: stop background adder.
 program_kill2>
     jsr sched_stop_task2
     ldi r0, os_string_adderbg_stopped
     jsr kernel_driver_tty_print
     rts
 
-# NEW: task manager.
+# task manager.
 # Shows whether each background task is RUN/STOP and how many time slices it got.
 program_ps>
     ldi r0, os_string_ps_header
